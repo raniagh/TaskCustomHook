@@ -2,9 +2,44 @@ import React, { useEffect, useState } from "react";
 
 import Tasks from "./components/Tasks/Tasks";
 import NewTask from "./components/NewTask/NewTask";
+import useHttp from "./hooks/use-http";
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false);
+  //Using custom hook
+  const [tasks, setTasks] = useState([]);
+
+  //call to the custom hook
+  const {
+    isLoading,
+    error,
+    //Rename sendRequest propertie to fetchTasks
+    sendRequest: fetchTasks,
+  } = useHttp();
+
+  useEffect(() => {
+    //the specific treatment for APP.js == applyData in useHttp
+    //taskData is the data argument in applyData the result of request's response
+    const transformedTask = (tasksData) => {
+      const loadedTasks = [];
+      for (const taskKey in tasksData) {
+        loadedTasks.push({ id: taskKey, text: tasksData[taskKey].text });
+      }
+      setTasks(loadedTasks);
+    };
+    fetchTasks(
+      {
+        url: "https://react-http-79508-default-rtdb.firebaseio.com/tasks.json",
+      },
+      transformedTask
+    );
+  }, [fetchTasks]);
+
+  const taskAddHandler = (task) => {
+    setTasks((prevTasks) => prevTasks.concat(task));
+  };
+
+  //Without custom hook
+  /* const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tasks, setTasks] = useState([]);
 
@@ -34,14 +69,7 @@ function App() {
     }
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const taskAddHandler = (task) => {
-    setTasks((prevTasks) => prevTasks.concat(task));
-  };
+ */
 
   return (
     <React.Fragment>
